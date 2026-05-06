@@ -1,7 +1,6 @@
 # 🚀 IntelliRoute: Smart Navigation System
 
 ![Navigation System](https://upload.wikimedia.org/wikipedia/commons/6/6e/GPS_navigation_device.jpg)
-
 ---
 
 ## 📌 Overview
