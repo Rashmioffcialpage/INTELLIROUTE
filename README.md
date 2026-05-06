@@ -1,48 +1,48 @@
 # 🚀 IntelliRoute: Smart Navigation System
 
-![Banner](https://images.unsplash.com/photo-1502920917128-1aa500764cbd?q=80&w=1400&auto=format&fit=crop)
+![Navigation System](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/GPS_navigation_device.jpg/1280px-GPS_navigation_device.jpg)
 
 ---
 
 ## 📌 Overview
-**IntelliRoute** is an intelligent navigation system that computes optimal routes using advanced graph algorithms and traffic-aware routing. It simulates real-world GPS systems and demonstrates how **DSA + AI-enhanced workflows** can solve complex optimization problems.
+**IntelliRoute** is an intelligent navigation system that computes optimal routes using graph algorithms and traffic-aware routing. It simulates real-world GPS systems and demonstrates how **DSA + AI-assisted development** can solve complex optimization problems.
 
 ---
 
 ## 🎯 Problem Statement
-Modern navigation systems struggle with:
-- Multiple possible routes
+Modern navigation systems face challenges like:
+- Multiple route options
 - Dynamic traffic conditions
-- Need for real-time optimization
+- Need for real-time decision making
 
 💡 **Solution:**  
-A graph-based routing engine with intelligent algorithms and dynamic traffic weighting.
+A graph-based routing engine that dynamically adapts using algorithms like Dijkstra and A*.
 
 ---
 
 ## 🧠 Tech + Concepts
 
 ### 🔷 Core DSA
-- Graph Theory
-- Shortest Path Algorithms
-- Heuristic Search (A*)
-- Optimization Techniques
+- Graph Theory  
+- Shortest Path Algorithms  
+- Heuristic Search (A*)  
+- Optimization  
 
 ### 🤖 AI-Assisted Development
 This project was enhanced using:
-- **Claude Sonnet 4.6** → architecture design & logic refinement  
-- **Claude Haiku 4.5** → fast iteration, debugging, UI logic  
+- **Claude Sonnet 4.6** → system design & logic refinement  
+- **Claude Haiku 4.5** → faster iteration & debugging  
 
-⚡ This allowed:
-- Faster development cycles  
-- Cleaner algorithm implementation  
-- Better system design decisions  
+⚡ Result:
+- Improved code quality  
+- Faster development  
+- Better architecture  
 
 ---
 
 ## ⚙️ System Architecture
 
-![Graph](https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop)
+![Graph Representation](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Graph_example.svg/1024px-Graph_example.svg.png)
 
 ### 🔷 Graph Model
 - Nodes → Locations  
@@ -53,7 +53,7 @@ This project was enhanced using:
 
 ## 🔄 How It Works
 
-![Workflow](https://images.unsplash.com/photo-1581093458791-9d15482442f6?q=80&w=1200&auto=format&fit=crop)
+![Pathfinding](https://upload.wikimedia.org/wikipedia/commons/5/57/Dijkstra_Animation.gif)
 
 1. User inputs source & destination  
 2. Map is converted into a graph  
@@ -69,7 +69,6 @@ This project was enhanced using:
 ### 🔹 Dijkstra’s Algorithm
 - Guarantees shortest path  
 - Explores all nodes  
-- Reliable but slower  
 
 **Time Complexity:** `O((V + E) log V)`
 
@@ -78,7 +77,6 @@ This project was enhanced using:
 ### 🔹 A* Algorithm
 - Uses heuristic (Euclidean distance)  
 - Faster & efficient  
-- Explores fewer nodes  
 
 **Formula:**  
 
@@ -90,8 +88,8 @@ This project was enhanced using:
 
 | Structure | Role |
 |----------|------|
-| Graph (Adjacency List) | Network modeling |
-| Priority Queue | Efficient node selection |
+| Graph | Network modeling |
+| Priority Queue | Node selection |
 | Hash Map | Distance tracking |
 | Set | Visited nodes |
 | Stack | Path reconstruction |
@@ -100,25 +98,53 @@ This project was enhanced using:
 
 ## 🚦 Traffic Simulation
 
-![Traffic](https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=1200&auto=format&fit=crop)
+![Traffic Lights](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Traffic_lights_2.jpg/800px-Traffic_lights_2.jpg)
 
 - Dynamic edge weights  
-- Simulates congestion  
-- Improves realism  
+- Congestion simulation  
+- Real-time-like behavior  
+
+---
+
+## 🚗 Real-World Applications
+
+### 🔹 Navigation Systems
+- Google Maps  
+- Uber / Lyft routing  
+- Delivery optimization  
+
+### 🔹 Self-Driving Cars 🚘
+This system is directly applicable to autonomous vehicles:
+- Real-time path planning  
+- Obstacle-aware routing  
+- Traffic-aware decision making  
+- Route optimization for safety & efficiency  
+
+👉 In self-driving cars, A* and similar algorithms help vehicles:
+- Decide best path instantly  
+- Avoid congestion  
+- Optimize fuel/energy usage  
+
+---
+
+## 📈 Trending Use Cases 🔥
+- Smart cities & traffic control  
+- Autonomous vehicles  
+- Logistics & supply chain optimization  
+- Drone delivery systems  
+- AI-based route prediction  
 
 ---
 
 ## 💻 Features
-- 🌐 Interactive web interface  
-- ⚡ Real-time route computation  
-- 🔁 Algorithm comparison (Dijkstra vs A*)  
-- 🚦 Traffic-aware routing  
-- 📊 Performance analysis  
+- Interactive web interface  
+- Real-time route computation  
+- Algorithm comparison  
+- Traffic simulation  
 
 ---
 
 ## 🚀 Getting Started
 
-### 📥 Clone Repo
 ```bash
 git clone https://github.com/your-username/intelliroute.git
