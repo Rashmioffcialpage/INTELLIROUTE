@@ -1,6 +1,7 @@
 # 🚀 IntelliRoute: Smart Navigation System
 
 ![Navigation System](https://upload.wikimedia.org/wikipedia/commons/6/6e/GPS_navigation_device.jpg)
+
 ---
 
 ## 📌 Overview
@@ -31,11 +32,6 @@ A graph-based routing system that dynamically adapts using efficient algorithms 
 This project was enhanced using:
 - **Claude Sonnet 4.6** → system design & architecture  
 - **Claude Haiku 4.5** → rapid debugging & iteration  
-
-⚡ Benefits:
-- Faster development cycles  
-- Cleaner and optimized code  
-- Better decision-making in design  
 
 ---
 
@@ -68,7 +64,6 @@ This project was enhanced using:
 ### 🔹 Dijkstra’s Algorithm
 - Guarantees shortest path  
 - Explores all nodes  
-- Reliable but slower  
 
 **Time Complexity:** `O((V + E) log V)`
 
@@ -77,7 +72,6 @@ This project was enhanced using:
 ### 🔹 A* Algorithm
 - Uses heuristic (Euclidean distance)  
 - Faster & efficient  
-- Explores fewer nodes  
 
 **Formula:**
 
@@ -115,29 +109,27 @@ This project was enhanced using:
 - Delivery optimization  
 
 ### 🔹 Self-Driving Cars 🚘
-This system directly relates to autonomous vehicles:
 - Real-time path planning  
 - Traffic-aware decision making  
-- Route optimization for efficiency  
-- Safer navigation using shortest path logic  
+- Route optimization  
+- Safer navigation  
 
 ---
 
 ## 📈 Trending Use Cases 🔥
-- Smart cities & traffic management  
+- Smart cities  
 - Autonomous vehicles  
 - Logistics optimization  
-- Drone delivery systems  
-- AI-based route prediction  
+- Drone delivery  
+- AI-based routing  
 
 ---
 
 ## 💻 Features
 - Interactive web interface  
 - Real-time route computation  
-- Algorithm comparison (Dijkstra vs A*)  
+- Algorithm comparison  
 - Traffic simulation  
-- Visual route display  
 
 ---
 
