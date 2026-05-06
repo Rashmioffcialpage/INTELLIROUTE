@@ -1,8 +1,6 @@
 # 🚀 IntelliRoute: Smart Navigation System
 
-<img width="512" height="385" alt="01" src="https://github.com/user-attachments/assets/d2205bec-781d-42a0-b7e2-4d4609d215c9" />
-
-
+<img width="600" height="600" alt="02" src="https://github.com/user-attachments/assets/639c3ead-345a-4d7a-9706-dc0ebdbcdfe9" />
 
 ---
 
@@ -97,7 +95,8 @@ This project was enhanced using:
 ---
 
 ## 🚦 Traffic Simulation
-<img width="600" height="600" alt="02" src="https://github.com/user-attachments/assets/639c3ead-345a-4d7a-9706-dc0ebdbcdfe9" />
+
+<img width="512" height="385" alt="01" src="https://github.com/user-attachments/assets/d2205bec-781d-42a0-b7e2-4d4609d215c9" />
 
 
 - Dynamic edge weights  
