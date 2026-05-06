@@ -1,6 +1,7 @@
 # 🚀 IntelliRoute: Smart Navigation System
 
-<img width="1536" height="1024" alt="nav12" src="https://github.com/user-attachments/assets/306ebba6-42b5-481e-922d-4c580c64cdd5" />
+<img width="512" height="385" alt="01" src="https://github.com/user-attachments/assets/d2205bec-781d-42a0-b7e2-4d4609d215c9" />
+
 
 
 ---
@@ -38,7 +39,8 @@ This project was enhanced using:
 
 ## ⚙️ System Architecture
 
-![Graph Representation](https://upload.wikimedia.org/wikipedia/commons/5/5b/Graph_example.svg)
+<img width="3985" height="2660" alt="03" src="https://github.com/user-attachments/assets/e663e396-eff3-4019-95df-71098b5a3d1c" />
+
 
 ### 🔷 Graph Model
 - Nodes → Locations  
@@ -64,7 +66,9 @@ This project was enhanced using:
 
 ### 🔹 Dijkstra’s Algorithm
 - Guarantees shortest path  
-- Explores all nodes  
+- Explores all nodes
+- <img width="2000" height="1428" alt="04" src="https://github.com/user-attachments/assets/04500637-bc97-4471-8be3-5350d1ba9d73" />
+
 
 **Time Complexity:** `O((V + E) log V)`
 
@@ -93,8 +97,8 @@ This project was enhanced using:
 ---
 
 ## 🚦 Traffic Simulation
+<img width="600" height="600" alt="02" src="https://github.com/user-attachments/assets/639c3ead-345a-4d7a-9706-dc0ebdbcdfe9" />
 
-![Traffic Lights](https://upload.wikimedia.org/wikipedia/commons/3/3b/Traffic_lights_2.jpg)
 
 - Dynamic edge weights  
 - Simulates congestion  
