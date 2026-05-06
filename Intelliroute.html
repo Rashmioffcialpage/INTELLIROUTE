@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntelliRoute — Smart Navigation System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05070f;
+  --surface: #0c1120;
+  --surface2: #111827;
+  --border: rgba(255,255,255,0.07);
+  --accent: #00e5ff;
+  --accent2: #7c6fff;
+  --accent3: #00ffb3;
+  --warn: #ff6b35;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --card: rgba(255,255,255,0.035);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(0,229,255,0.06) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 80% 80%,rgba(124,111,255,0.07) 0%,transparent 70%),radial-gradient(ellipse 30% 30% at 50% 50%,rgba(0,255,179,0.03) 0%,transparent 60%);pointer-events:none;z-index:0;}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:100;background:rgba(5,7,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;letter-spacing:-0.02em;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+nav{display:flex;gap:0.15rem;}
+nav a{font-size:0.8rem;font-weight:500;color:var(--muted);text-decoration:none;padding:0.45rem 1rem;border-radius:6px;transition:all 0.2s;cursor:pointer;border:1px solid transparent;}
+nav a:hover{color:var(--text);background:var(--card);}
+nav a.active{color:var(--accent);background:rgba(0,229,255,0.08);border-color:rgba(0,229,255,0.2);}
+.badge{font-family:'JetBrains Mono',monospace;font-size:0.68rem;background:rgba(0,229,255,0.1);color:var(--accent);border:1px solid rgba(0,229,255,0.2);padding:0.2rem 0.65rem;border-radius:999px;}
+
+/* ── LAYOUT ── */
+main{position:relative;z-index:1;padding:0;}
+
+/* ── TAB PAGES ── */
+.tab-page{display:none;padding:2rem 2rem 4rem;}
+.tab-page.active{display:block;animation:fadeIn 0.35s ease;}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:4rem 1rem 2.5rem;position:relative;}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.15em;color:var(--accent);text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';height:1px;width:40px;background:var(--accent);opacity:0.4;}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,7vw,5rem);font-weight:800;line-height:1;letter-spacing:-0.03em;background:linear-gradient(135deg,#fff 30%,var(--accent) 70%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.9rem;}
+.hero p{max-width:500px;margin:0 auto 2rem;color:var(--muted);font-size:1rem;line-height:1.7;}
+.pill-row{display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin-bottom:2.5rem;}
+.pill{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.05em;padding:0.3rem 0.75rem;border-radius:999px;border:1px solid var(--border);color:var(--muted);}
+
+/* ── SECTION HEADER ── */
+.section-header{margin-bottom:1.5rem;}
+.section-header h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);}
+.section-header p{color:var(--muted);font-size:0.88rem;margin-top:0.3rem;}
+
+/* ── GRID ── */
+.panel-grid{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;}
+.panel-title{font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.dot.purple{background:var(--accent2);box-shadow:0 0 8px var(--accent2);}
+.dot.green{background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
+.dot.orange{background:var(--warn);box-shadow:0 0 8px var(--warn);}
+
+/* ── FORM ── */
+label{display:block;font-size:0.75rem;font-weight:500;color:var(--muted);margin-bottom:0.35rem;letter-spacing:0.04em;}
+select,input[type=text]{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:0.55rem 0.85rem;outline:none;transition:border-color 0.2s;margin-bottom:0.9rem;appearance:none;cursor:pointer;}
+select:focus,input[type=text]:focus{border-color:var(--accent);}
+select option{background:var(--surface2);}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;letter-spacing:0.05em;padding:0.6rem 1.25rem;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s;}
+.btn-primary{width:100%;background:linear-gradient(90deg,var(--accent),#00b8d9);color:#000;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,229,255,0.3);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);font-size:0.78rem;padding:0.45rem 0.9rem;}
+.btn-secondary:hover{border-color:var(--accent2);color:var(--accent2);}
+
+/* ── ALGO TOGGLE ── */
+.algo-toggle{display:flex;gap:0.5rem;margin-bottom:0.9rem;}
+.algo-btn{flex:1;padding:0.45rem;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'JetBrains Mono',monospace;}
+.algo-btn.active{background:rgba(0,229,255,0.12);border-color:var(--accent);color:var(--accent);}
+
+/* ── GPS MAP ── */
+#map-canvas{width:100%;height:460px;background:var(--surface2);border-radius:16px;overflow:hidden;position:relative;border:1px solid var(--border);}
+#map-canvas svg{width:100%;height:100%;}
+
+/* ── GPS OVERLAY CONTROLS ── */
+.map-overlay{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;z-index:10;}
+.map-btn{width:34px;height:34px;background:rgba(12,17,32,0.92);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:all 0.2s;}
+.map-btn:hover{border-color:var(--accent);color:var(--accent);}
+.map-compass{width:34px;height:34px;background:rgba(12,17,32,0.92);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:var(--warn);font-family:'JetBrains Mono',monospace;}
+.map-scale{position:absolute;bottom:12px;left:12px;background:rgba(12,17,32,0.85);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);backdrop-filter:blur(8px);}
+.map-attrib{position:absolute;bottom:12px;right:12px;background:rgba(12,17,32,0.75);border-radius:4px;padding:3px 7px;font-size:0.6rem;color:var(--muted);}
+.gps-pulse{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(12,17,32,0.92);border:1px solid rgba(0,229,255,0.2);border-radius:8px;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);backdrop-filter:blur(8px);}
+.gps-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 6px var(--accent3);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── TURN DIRECTIONS ── */
+.directions-panel{background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;padding:0.75rem;margin-top:0.75rem;max-height:160px;overflow-y:auto;}
+.dir-step{display:flex;align-items:flex-start;gap:0.6rem;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.78rem;}
+.dir-step:last-child{border-bottom:none;}
+.dir-icon{font-size:0.9rem;flex-shrink:0;margin-top:1px;}
+.dir-text{color:var(--text);line-height:1.4;}
+.dir-dist{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--muted);margin-left:auto;flex-shrink:0;}
+
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1rem;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
+.kpi.purple::before{background:var(--accent2);}
+.kpi.green::before{background:var(--accent3);}
+.kpi.orange::before{background:var(--warn);}
+.kpi-label{font-size:0.68rem;font-weight:500;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.35rem;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);line-height:1;}
+.kpi-unit{font-size:0.65rem;color:var(--muted);margin-left:0.15rem;}
+
+/* ── ROUTE CARDS ── */
+.route-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-top:0.75rem;}
+.route-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.1rem;cursor:pointer;transition:all 0.25s;position:relative;}
+.route-card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+.route-card.selected{border-color:var(--accent);background:rgba(0,229,255,0.06);}
+.route-card.selected::after{content:'✓';position:absolute;top:0.6rem;right:0.75rem;font-size:0.7rem;font-weight:700;color:var(--accent);}
+.route-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;}
+.route-badge{display:inline-block;font-size:0.6rem;font-weight:600;padding:0.15rem 0.45rem;border-radius:4px;margin-bottom:0.5rem;}
+.route-stat{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);padding:0.2rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.route-stat:last-child{border-bottom:none;}
+.route-stat span:last-child{color:var(--text);font-weight:500;}
+
+/* ── ALGO TRACE ── */
+.algo-trace{background:rgba(0,0,0,0.35);border-radius:8px;border:1px solid var(--border);padding:0.7rem 0.9rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.85;color:var(--muted);max-height:170px;overflow-y:auto;margin-top:0.75rem;}
+.trace-line.highlight{color:var(--accent3);}
+.trace-line.step{color:var(--text);}
+.trace-line.result{color:var(--accent);font-weight:700;}
+
+/* ── ALGORITHM PAGE ── */
+.algo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.graph-canvas{background:var(--surface2);border-radius:12px;border:1px solid var(--border);width:100%;height:300px;overflow:hidden;}
+.complexity-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.complexity-table th{font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:0.55rem 0.85rem;text-align:left;border-bottom:1px solid var(--border);}
+.complexity-table td{padding:0.55rem 0.85rem;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.78rem;}
+.complexity-table tr:hover td{background:rgba(255,255,255,0.02);}
+.tag{display:inline-block;padding:0.15rem 0.45rem;border-radius:4px;font-size:0.65rem;font-weight:600;}
+.tag.green{background:rgba(0,255,179,0.1);color:var(--accent3);}
+.tag.blue{background:rgba(0,229,255,0.1);color:var(--accent);}
+.tag.purple{background:rgba(124,111,255,0.1);color:var(--accent2);}
+
+/* ── ALGO STATS BAR ── */
+.algo-stat-bar{background:rgba(0,0,0,0.3);border-radius:8px;padding:0.75rem 1rem;border:1px solid var(--border);margin-bottom:0.75rem;}
+.algo-stat-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;font-size:0.8rem;}
+.algo-stat-row .label{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.72rem;}
+.algo-stat-row .val{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;}
+
+/* ── STEP EXPLORER ── */
+.step-explorer{margin-top:1rem;}
+.step-control{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;}
+.step-btn{width:32px;height:32px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.step-btn:hover{border-color:var(--accent);color:var(--accent);}
+.step-info{flex:1;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;}
+
+/* ── TRAFFIC PAGE ── */
+.traffic-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.traffic-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;margin-top:0.35rem;}
+.traffic-fill{height:100%;border-radius:3px;transition:width 1.2s ease;}
+.congestion-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:4px;}
+.cong-low{background:rgba(0,255,179,0.12);color:var(--accent3);}
+.cong-med{background:rgba(250,204,21,0.12);color:#facc15;}
+.cong-high{background:rgba(255,107,53,0.12);color:var(--warn);}
+
+/* ── ANALYSIS PAGE ── */
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+.stat-box{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:0.7rem;}
+.stat-box-label{font-size:0.67rem;color:var(--muted);margin-bottom:0.25rem;}
+.stat-box-val{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;}
+.stat-box-unit{font-size:0.6rem;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.path-viz{display:flex;align-items:center;flex-wrap:wrap;gap:0.3rem;margin-top:1rem;padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid var(--border);}
+.path-node{font-family:'JetBrains Mono',monospace;font-size:0.7rem;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);color:var(--accent);padding:0.2rem 0.5rem;border-radius:5px;}
+.path-arrow{color:var(--muted);font-size:0.7rem;}
+
+/* ── MINI CHART (SVG) ── */
+.mini-chart{background:var(--surface2);border-radius:10px;border:1px solid var(--border);overflow:hidden;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:2.5rem;color:var(--muted);}
+.empty-state .icon{font-size:2rem;margin-bottom:0.6rem;}
+.empty-state p{font-size:0.85rem;}
+.empty-state small{font-size:0.72rem;color:rgba(100,116,139,0.6);margin-top:0.3rem;display:block;}
+
+/* ── SPINNER ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,229,255,0.2);border-top-color:var(--accent);animation:spin 0.7s linear infinite;display:inline-block;}
+
+/* ── CHATBOT ── */
+#chat-panel{position:fixed;bottom:2rem;right:2rem;width:360px;z-index:200;display:none;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,0.7);overflow:hidden;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.1rem;background:rgba(0,229,255,0.06);border-bottom:1px solid var(--border);}
+.chat-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:0.5rem;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;}
+#chat-messages{padding:0.9rem;height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:0.55rem;}
+.chat-bubble{padding:0.6rem 0.85rem;border-radius:10px;font-size:0.8rem;line-height:1.5;max-width:90%;}
+.chat-bubble.bot{background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.2);align-self:flex-start;}
+.chat-bubble.user{background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.2);align-self:flex-end;}
+.chat-input-row{display:flex;gap:0.5rem;padding:0.7rem 0.9rem;border-top:1px solid var(--border);}
+.chat-input-row input{flex:1;margin:0;font-size:0.8rem;padding:0.45rem 0.7rem;}
+.chat-fab{position:fixed;bottom:2rem;right:2rem;z-index:201;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;cursor:pointer;font-size:1.3rem;box-shadow:0 6px 30px rgba(124,111,255,0.5);transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+.chat-fab:hover{transform:scale(1.08);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn 0.4s ease forwards;}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:1.5rem 0;}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:0.75rem;border-top:1px solid var(--border);position:relative;z-index:1;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .panel-grid{grid-template-columns:1fr;}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .route-cards{grid-template-columns:1fr;}
+  .algo-grid{grid-template-columns:1fr;}
+  .traffic-grid{grid-template-columns:1fr;}
+  .analysis-grid{grid-template-columns:1fr;}
+  .tab-page{padding:1rem 1rem 3rem;}
+  #chat-panel,#chat-fab{right:1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">⬡ IntelliRoute</div>
+  <nav>
+    <a onclick="showTab('planner')" id="nav-planner" class="active">🗺 Planner</a>
+    <a onclick="showTab('algorithms')" id="nav-algorithms">⚙ Algorithms</a>
+    <a onclick="showTab('traffic')" id="nav-traffic">🚦 Traffic</a>
+    <a onclick="showTab('analysis')" id="nav-analysis">📊 Analysis</a>
+  </nav>
+  <div class="badge">v3.0 · IntelliRoute</div>
+</header>
+
+<main>
+
+<!-- ══════════════════ PLANNER TAB ══════════════════ -->
+<div class="tab-page active" id="tab-planner">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Smart Navigation System</div>
+    <h1>IntelliRoute</h1>
+    <p>Dijkstra & A* pathfinding with real-time traffic simulation, multi-route optimization, and an AI assistant.</p>
+    <div class="pill-row">
+      <div class="pill">Dijkstra's Algorithm</div>
+      <div class="pill">A* Heuristic Search</div>
+      <div class="pill">Priority Queue (Min-Heap)</div>
+      <div class="pill">Traffic Simulation</div>
+      <div class="pill">GPS-style Navigation</div>
+    </div>
+  </div>
+
+  <div class="panel-grid">
+    <!-- CONTROL PANEL -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Control Panel</div>
+
+      <label>Start Location</label>
+      <select id="sel-start"></select>
+      <label>Destination</label>
+      <select id="sel-end"></select>
+      <label>Optimization Mode</label>
+      <select id="sel-mode">
+        <option value="distance">Shortest Distance</option>
+        <option value="time">Fastest Time</option>
+        <option value="eco">Eco-Friendly</option>
+        <option value="cost">Lowest Cost</option>
+      </select>
+      <label>Algorithm</label>
+      <div class="algo-toggle">
+        <button class="algo-btn active" id="btn-astar" onclick="selectAlgo('astar')">A*</button>
+        <button class="algo-btn" id="btn-dijkstra" onclick="selectAlgo('dijkstra')">Dijkstra</button>
+        <button class="algo-btn" id="btn-both" onclick="selectAlgo('both')">Both</button>
+      </div>
+      <label>Traffic Level</label>
+      <select id="sel-traffic">
+        <option value="auto">Auto (Time-of-Day)</option>
+        <option value="low">Low Traffic</option>
+        <option value="normal">Normal</option>
+        <option value="high">High Traffic</option>
+      </select>
+
+      <button class="btn btn-primary" onclick="findRoute()" id="run-btn">▶ Find Best Route</button>
+
+      <div style="margin-top:1rem;">
+        <div class="panel-title" style="margin-bottom:0.4rem;"><div class="dot orange"></div> Algorithm Trace</div>
+        <div class="algo-trace" id="trace-log"><span style="color:var(--muted);">// Select locations and run to see trace...</span></div>
+      </div>
+
+      <!-- Turn-by-turn directions -->
+      <div style="margin-top:1rem;">
+        <div class="panel-title" style="margin-bottom:0.4rem;"><div class="dot green"></div> Turn-by-Turn</div>
+        <div class="directions-panel" id="directions-panel">
+          <div style="font-size:0.78rem;color:var(--muted);">Run planner to get directions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP + RESULTS -->
+    <div>
+      <!-- KPI ROW -->
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">Distance</div><div class="kpi-value" id="kpi-dist">—</div></div>
+        <div class="kpi purple"><div class="kpi-label">Est. Time</div><div class="kpi-value" id="kpi-time">—</div></div>
+        <div class="kpi green"><div class="kpi-label">Est. Cost</div><div class="kpi-value" id="kpi-cost">—</div></div>
+        <div class="kpi orange"><div class="kpi-label">Carbon</div><div class="kpi-value" id="kpi-carbon">—</div></div>
+      </div>
+
+      <!-- GPS MAP -->
+      <div id="map-canvas" style="position:relative;">
+        <div class="empty-state">
+          <div class="icon">🛰️</div>
+          <p>GPS Map will appear here</p>
+          <small>Select locations and click Find Best Route</small>
+        </div>
+      </div>
+
+      <!-- ROUTE OPTIONS -->
+      <div class="panel-title" style="margin-top:1rem;"><div class="dot purple"></div> Route Options</div>
+      <div class="route-cards" id="route-cards">
+        <div class="route-card" style="opacity:0.35;pointer-events:none;">
+          <div class="route-name">Route A</div>
+          <div class="route-stat"><span>⏱ Time</span><span>—</span></div>
+          <div class="route-stat"><span>💰 Cost</span><span>—</span></div>
+        </div>
+        <div class="route-card" style="opacity:0.35;pointer-events:none;">
+          <div class="route-name">Route B</div>
+          <div class="route-stat"><span>⏱ Time</span><span>—</span></div>
+          <div class="route-stat"><span>💰 Cost</span><span>—</span></div>
+        </div>
+        <div class="route-card" style="opacity:0.35;pointer-events:none;">
+          <div class="route-name">Route C</div>
+          <div class="route-stat"><span>⏱ Time</span><span>—</span></div>
+          <div class="route-stat"><span>💰 Cost</span><span>—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ALGORITHMS TAB ══════════════════ -->
+<div class="tab-page" id="tab-algorithms">
+  <div class="section-header">
+    <h2>⚙ Algorithm Visualization</h2>
+    <p>Explore how A* and Dijkstra work step-by-step on the route graph</p>
+  </div>
+
+  <div class="algo-grid">
+    <!-- GRAPH VISUAL -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Graph Structure — Live View</div>
+      <canvas id="graph-canvas" class="graph-canvas" width="600" height="300"></canvas>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+        <span class="tag blue">● Node</span>
+        <span class="tag green">● Path Node</span>
+        <span class="tag purple">● Start/End</span>
+        <span style="font-size:0.68rem;color:var(--muted);margin-left:auto;">Adjacency List Graph</span>
+      </div>
+
+      <!-- Step Explorer -->
+      <div class="step-explorer">
+        <div class="panel-title" style="margin-top:1rem;margin-bottom:0.5rem;"><div class="dot orange"></div> Step-by-Step Explorer</div>
+        <div class="step-control">
+          <button class="step-btn" onclick="stepPrev()">◀</button>
+          <div class="step-info" id="step-info">Run planner to explore steps</div>
+          <button class="step-btn" onclick="stepNext()">▶</button>
+        </div>
+        <div id="step-display" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent3);background:rgba(0,0,0,0.3);border-radius:6px;padding:0.6rem;border:1px solid var(--border);min-height:40px;">Waiting for route computation...</div>
+      </div>
+    </div>
+
+    <!-- COMPLEXITY + COMPARISON -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="panel">
+        <div class="panel-title"><div class="dot purple"></div> Complexity Analysis</div>
+        <table class="complexity-table">
+          <thead><tr><th>Algorithm</th><th>Time</th><th>Space</th><th>Optimal</th></tr></thead>
+          <tbody>
+            <tr><td>A* Search</td><td>O(E log V)</td><td>O(V)</td><td><span class="tag green">Yes*</span></td></tr>
+            <tr><td>Dijkstra</td><td>O((V+E) log V)</td><td>O(V)</td><td><span class="tag green">Yes</span></td></tr>
+            <tr><td>BFS</td><td>O(V+E)</td><td>O(V)</td><td><span class="tag purple">Unweighted</span></td></tr>
+            <tr><td>DFS</td><td>O(V+E)</td><td>O(V)</td><td><span class="tag purple">No</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:0.9rem;padding:0.7rem;background:rgba(0,0,0,0.3);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted);line-height:1.9;">
+          <span style="color:var(--accent3);">// Data Structures Used</span><br>
+          Priority Queue → <span style="color:var(--accent);">Min-Heap (heapq)</span><br>
+          Graph → <span style="color:var(--accent);">Adjacency List (dict)</span><br>
+          Visited → <span style="color:var(--accent);">Hash Map (O(1) lookup)</span><br>
+          Heuristic → <span style="color:var(--accent);">Euclidean Distance</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><div class="dot green"></div> Algorithm Comparison</div>
+        <div id="algo-comparison-detail">
+          <div class="empty-state" style="padding:1.5rem;">
+            <div class="icon">⚙️</div>
+            <p>Run planner with "Both" mode to compare algorithms</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><div class="dot orange"></div> Current Run Stats</div>
+        <div id="algo-run-stats">
+          <div class="algo-stat-row"><span class="label">Nodes in graph</span><span class="val" id="stat-nodes">11</span></div>
+          <div class="algo-stat-row"><span class="label">Edges in graph</span><span class="val" id="stat-edges">—</span></div>
+          <div class="algo-stat-row"><span class="label">Algorithm used</span><span class="val" id="stat-algo">A*</span></div>
+          <div class="algo-stat-row"><span class="label">Path length</span><span class="val" id="stat-pathlen">—</span></div>
+          <div class="algo-stat-row"><span class="label">Path cost</span><span class="val" id="stat-pathcost">—</span></div>
+          <div class="algo-stat-row"><span class="label">Heuristic</span><span class="val" id="stat-heuristic">Euclidean</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TRAFFIC TAB ══════════════════ -->
+<div class="tab-page" id="tab-traffic">
+  <div class="section-header">
+    <h2>🚦 Traffic Simulation</h2>
+    <p>Real-time traffic conditions, congestion levels, and time-of-day patterns</p>
+  </div>
+
+  <div class="traffic-grid">
+    <!-- TRAFFIC MONITOR -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot orange"></div> Live Traffic Monitor</div>
+      <div id="traffic-nodes"></div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:0.75rem;" onclick="refreshTraffic()">🔄 Refresh Traffic</button>
+    </div>
+
+    <!-- TIME-OF-DAY CHART -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Time-of-Day Pattern</div>
+      <canvas id="traffic-chart" width="340" height="180" style="width:100%;"></canvas>
+      <div style="margin-top:0.75rem;font-size:0.78rem;color:var(--muted);">
+        Rush hours: <span style="color:var(--warn);">7–10 AM</span> and <span style="color:var(--warn);">4–7 PM</span>
+      </div>
+      <div style="margin-top:0.75rem;padding:0.6rem;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.78rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
+          <span style="color:var(--muted);">Current Hour</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);" id="current-hour-display">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--muted);">Traffic Status</span>
+          <span id="traffic-status-label">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDGE WEIGHTS -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot green"></div> Edge Weights (Traffic-Adjusted)</div>
+      <div id="edge-weight-display" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;line-height:2.1;color:var(--muted);"></div>
+      <div style="margin-top:1rem;padding:0.6rem;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.72rem;">
+        <div style="color:var(--muted);margin-bottom:0.4rem;">Legend:</div>
+        <div style="display:flex;gap:1rem;">
+          <span style="color:var(--accent);">Base weight</span>
+          <span style="color:var(--warn);">Traffic-adjusted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONGESTION MAP -->
+  <div class="divider"></div>
+  <div class="panel" style="margin-top:0;">
+    <div class="panel-title"><div class="dot orange"></div> Congestion Overview Map</div>
+    <div id="congestion-map" style="height:250px;position:relative;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ ANALYSIS TAB ══════════════════ -->
+<div class="tab-page" id="tab-analysis">
+  <div class="section-header">
+    <h2>📊 Route Analysis</h2>
+    <p>Detailed breakdown of path statistics, node data, and route comparison</p>
+  </div>
+
+  <div class="analysis-grid">
+    <!-- PATH STATS -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Path Statistics</div>
+      <div id="path-stats">
+        <div class="empty-state">
+          <div class="icon">📊</div>
+          <p>Run the planner first</p>
+          <small>Stats will appear after computing a route</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- NODE EXPLORER -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot purple"></div> Node Explorer</div>
+      <div id="node-explorer"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="analysis-grid">
+    <!-- ROUTE COMPARISON CHART -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot green"></div> Route Comparison Chart</div>
+      <div id="comparison-chart">
+        <div class="empty-state">
+          <div class="icon">📈</div>
+          <p>Run planner to see comparison</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENVIRONMENTAL IMPACT -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot orange"></div> Environmental & Cost Impact</div>
+      <div id="eco-panel">
+        <div class="empty-state">
+          <div class="icon">🌿</div>
+          <p>Run planner for eco analysis</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>Built by Rashmi</footer>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()">🤖</button>
+
+<!-- CHAT PANEL -->
+<div id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-title"><div class="online-dot"></div> IntelliRoute AI</div>
+    <button class="btn btn-secondary" style="padding:0.3rem 0.55rem;font-size:0.68rem;" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-messages">
+    <div class="chat-bubble bot">👋 Hi! I'm your route assistant. Ask me to compare routes, suggest fastest, cheapest or eco-friendly options!</div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="e.g. which is cheapest?" onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn btn-secondary" onclick="sendChat()">→</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const STATES = {
+  "California":  { lat: 36.77, lon: -119.42, x: 60,  y: 200 },
+  "Texas":       { lat: 31.97, lon: -99.90,  x: 250, y: 280 },
+  "Florida":     { lat: 27.99, lon: -81.76,  x: 480, y: 300 },
+  "New York":    { lat: 40.71, lon: -74.00,  x: 560, y: 130 },
+  "Illinois":    { lat: 40.63, lon: -89.40,  x: 360, y: 150 },
+  "Arizona":     { lat: 34.05, lon: -111.09, x: 130, y: 240 },
+  "Colorado":    { lat: 39.55, lon: -105.78, x: 195, y: 190 },
+  "New Jersey":  { lat: 40.05, lon: -74.40,  x: 575, y: 155 },
+  "Indiana":     { lat: 39.85, lon: -86.26,  x: 400, y: 170 },
+  "Tennessee":   { lat: 35.52, lon: -86.58,  x: 390, y: 230 },
+  "Missouri":    { lat: 37.96, lon: -91.83,  x: 305, y: 205 }
+};
+
+function geoD(a, b) {
+  const s1=STATES[a], s2=STATES[b];
+  return Math.sqrt((s1.lat-s2.lat)**2+(s1.lon-s2.lon)**2);
+}
+
+const ADJ = {}, EDGES = [], keys = Object.keys(STATES);
+keys.forEach(k=>ADJ[k]=[]);
+for(let i=0;i<keys.length;i++){
+  for(let j=i+1;j<keys.length;j++){
+    const d=geoD(keys[i],keys[j]);
+    if(d<12){
+      const w=Math.round(d*100);
+      ADJ[keys[i]].push({to:keys[j],w});
+      ADJ[keys[j]].push({to:keys[i],w});
+      EDGES.push({a:keys[i],b:keys[j],w});
+    }
+  }
+}
+
+let selectedAlgo='astar', lastResult=null, trafficFactors={}, chatRoutes=null;
+let traceSteps=[], currentStep=0;
+
+// ═══════════════════════════════════════════
+//  TAB NAVIGATION
+// ═══════════════════════════════════════════
+function showTab(name){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  // Re-draw canvases when switching tabs
+  if(name==='algorithms'){ drawGraphCanvas(lastResult?lastResult.path:[]); }
+  if(name==='traffic'){ renderTrafficPage(); }
+  if(name==='analysis'){ renderAnalysisPage(); }
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+function init(){
+  const ss=document.getElementById('sel-start');
+  const se=document.getElementById('sel-end');
+  keys.forEach(k=>{
+    ss.innerHTML+=`<option value="${k}">${k}</option>`;
+    se.innerHTML+=`<option value="${k}">${k}</option>`;
+  });
+  se.selectedIndex=3;
+  document.getElementById('stat-edges').textContent=EDGES.length;
+  initTrafficFactors();
+  renderTrafficPage();
+  renderNodeExplorer();
+  drawGraphCanvas([]);
+  drawTrafficChart();
+  updateTimeDisplay();
+}
+
+// ═══════════════════════════════════════════
+//  ALGO SELECTION
+// ═══════════════════════════════════════════
+function selectAlgo(a){
+  selectedAlgo=a;
+  ['astar','dijkstra','both'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('active',x===a));
+  document.getElementById('stat-algo').textContent=a==='both'?'A* + Dijkstra':a==='astar'?'A*':'Dijkstra';
+}
+
+// ═══════════════════════════════════════════
+//  MIN-HEAP
+// ═══════════════════════════════════════════
+class MinHeap{
+  constructor(){this.heap=[];}
+  push(item){this.heap.push(item);this._up(this.heap.length-1);}
+  pop(){const t=this.heap[0],l=this.heap.pop();if(this.heap.length){this.heap[0]=l;this._down(0);}return t;}
+  _up(i){while(i>0){const p=Math.floor((i-1)/2);if(this.heap[p][0]<=this.heap[i][0])break;[this.heap[p],this.heap[i]]=[this.heap[i],this.heap[p]];i=p;}}
+  _down(i){const n=this.heap.length;while(true){let m=i,l=2*i+1,r=2*i+2;if(l<n&&this.heap[l][0]<this.heap[m][0])m=l;if(r<n&&this.heap[r][0]<this.heap[m][0])m=r;if(m===i)break;[this.heap[m],this.heap[i]]=[this.heap[i],this.heap[m]];i=m;}}
+  get size(){return this.heap.length;}
+}
+
+// ═══════════════════════════════════════════
+//  DIJKSTRA
+// ═══════════════════════════════════════════
+function dijkstra(start,end,adjO){
+  const adj=adjO||ADJ;
+  const dist={};keys.forEach(k=>dist[k]=Infinity);dist[start]=0;
+  const prev={},pq=new MinHeap();
+  pq.push([0,start]);
+  const trace=[`[Dijkstra] Start: ${start} → ${end}`];
+  let steps=0;
+  while(pq.size>0){
+    const [d,u]=pq.pop();
+    if(d>dist[u])continue;
+    if(u===end)break;
+    for(const {to,w} of adj[u]){
+      const nd=d+w;
+      if(nd<dist[to]){dist[to]=nd;prev[to]=u;pq.push([nd,to]);if(steps<15)trace.push(`  relax ${u}→${to}: cost=${nd}`);steps++;}
+    }
+  }
+  trace.push(`[Dijkstra] Done. Cost: ${dist[end]}`);
+  return {dist,prev,trace};
+}
+
+// ═══════════════════════════════════════════
+//  A*
+// ═══════════════════════════════════════════
+function heuristic(a,b){const s1=STATES[a],s2=STATES[b];return Math.sqrt((s1.lat-s2.lat)**2+(s1.lon-s2.lon)**2)*100;}
+
+function astar(start,end,adjO){
+  const adj=adjO||ADJ;
+  const g={};keys.forEach(k=>g[k]=Infinity);g[start]=0;
+  const f={};keys.forEach(k=>f[k]=Infinity);f[start]=heuristic(start,end);
+  const prev={},pq=new MinHeap();
+  pq.push([f[start],start]);
+  const trace=[`[A*] Start: ${start} → ${end}`,`[A*] Heuristic: Euclidean distance`];
+  let steps=0;
+  while(pq.size>0){
+    const [,u]=pq.pop();
+    if(u===end)break;
+    for(const {to,w} of adj[u]){
+      const ng=g[u]+w;
+      if(ng<g[to]){g[to]=ng;prev[to]=u;f[to]=ng+heuristic(to,end);pq.push([f[to],to]);if(steps<15)trace.push(`  explore ${u}→${to}: g=${ng}, h=${Math.round(heuristic(to,end))}`);steps++;}
+    }
+  }
+  trace.push(`[A*] Done. Cost: ${g[end]}`);
+  return {dist:g,prev,trace};
+}
+
+function getPath(prev,start,end){
+  const path=[];let cur=end;
+  while(cur&&cur!==start){path.push(cur);cur=prev[cur];}
+  if(!cur)return[];
+  path.push(start);
+  return path.reverse();
+}
+
+// ═══════════════════════════════════════════
+//  TRAFFIC
+// ═══════════════════════════════════════════
+function initTrafficFactors(){
+  const h=new Date().getHours();
+  const rush=(h>=7&&h<=10)||(h>=16&&h<=19);
+  const base=rush?1.4:1.0;
+  const sel=document.getElementById('sel-traffic');
+  const mode=sel?sel.value:'auto';
+  const mf={low:0.8,normal:1.0,high:1.5,auto:1.0}[mode]||1.0;
+  EDGES.forEach(e=>{
+    const fl=(0.9+Math.random()*0.3)*base*mf;
+    trafficFactors[e.a+'|'+e.b]=fl;
+    trafficFactors[e.b+'|'+e.a]=fl;
+  });
+}
+
+function getTrafficAdj(){
+  const adj2={};
+  keys.forEach(k=>adj2[k]=[]);
+  EDGES.forEach(e=>{
+    const fl=trafficFactors[e.a+'|'+e.b]||1;
+    const w=Math.round(e.w*fl);
+    adj2[e.a].push({to:e.b,w});
+    adj2[e.b].push({to:e.a,w});
+  });
+  return adj2;
+}
+
+function refreshTraffic(){
+  initTrafficFactors();
+  renderTrafficPage();
+}
+
+function updateTimeDisplay(){
+  const h=new Date().getHours();
+  const rush=(h>=7&&h<=10)||(h>=16&&h<=19);
+  const el=document.getElementById('current-hour-display');
+  const sl=document.getElementById('traffic-status-label');
+  if(el) el.textContent=h+':00';
+  if(sl){
+    if(rush){ sl.innerHTML='<span class="congestion-badge cong-high">🔴 Rush Hour</span>';}
+    else if(h>=22||h<6){ sl.innerHTML='<span class="congestion-badge cong-low">🟢 Off-Peak</span>';}
+    else{ sl.innerHTML='<span class="congestion-badge cong-med">🟡 Moderate</span>';}
+  }
+}
+
+// ═══════════════════════════════════════════
+//  TRAFFIC PAGE RENDER
+// ═══════════════════════════════════════════
+function renderTrafficPage(){
+  updateTimeDisplay();
+  // Traffic Monitor
+  let html='';
+  EDGES.slice(0,8).forEach(e=>{
+    const fl=trafficFactors[e.a+'|'+e.b]||1;
+    const pct=Math.min(100,Math.round((fl-0.7)*200));
+    const col=fl>1.3?'var(--warn)':fl>1.1?'#facc15':'var(--accent3)';
+    const badge=fl>1.3?'cong-high':fl>1.1?'cong-med':'cong-low';
+    const label=fl>1.3?'Heavy':fl>1.1?'Moderate':'Clear';
+    const badgeLabel = fl>1.3?'Heavy':fl>1.1?'Moderate':'Clear';
+    html+=`<div style="margin-bottom:0.85rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+        <span style="font-size:0.78rem;color:var(--muted)">${e.a.split(' ')[0]} → ${e.b.split(' ')[0]}</span>
+        <div style="display:flex;align-items:center;gap:0.4rem;">
+          <span class="congestion-badge ${badge}">${badgeLabel}</span>
+          <span style="color:${col};font-family:'JetBrains Mono',monospace;font-size:0.7rem;">${fl.toFixed(2)}x</span>
+        </div>
+      </div>
+      <div class="traffic-bar"><div class="traffic-fill" style="width:${pct}%;background:${col};"></div></div>
+    </div>`;
+  });
+  const el=document.getElementById('traffic-nodes');
+  if(el) el.innerHTML=html;
+
+  // Edge weights
+  const ew=document.getElementById('edge-weight-display');
+  if(ew){
+    let eh='';
+    EDGES.slice(0,11).forEach(e=>{
+      const fl=trafficFactors[e.a+'|'+e.b]||1;
+      const tw=Math.round(e.w*fl);
+      const diff=tw-e.w;
+      const col=diff>20?'var(--warn)':'var(--accent3)';
+      eh+=`<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:0.2rem 0;">
+        <span>${e.a.split(' ')[0]} ↔ ${e.b.split(' ')[0]}</span>
+        <span><span style="color:var(--accent)">${e.w}</span> → <span style="color:${col}">${tw}</span></span>
+      </div>`;
+    });
+    ew.innerHTML=eh;
+  }
+
+  // Congestion Map
+  renderCongestionMap();
+  drawTrafficChart();
+}
+
+function renderCongestionMap(){
+  const el=document.getElementById('congestion-map');
+  if(!el) return;
+  const W=800,H=250;
+  const xs=Object.values(STATES).map(s=>s.x);
+  const ys=Object.values(STATES).map(s=>s.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  function px(s){return 40+(s.x-minX)/(maxX-minX)*(W-80);}
+  function py(s){return 30+(s.y-minY)/(maxY-minY)*(H-60);}
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;border-radius:10px;">
+  <defs>
+    <radialGradient id="cgbg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#111827"/><stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#cgbg)"/>`;
+  for(let x=30;x<W;x+=35)for(let y=25;y<H;y+=35)svg+=`<circle cx="${x}" cy="${y}" r="0.8" fill="rgba(255,255,255,0.025)"/>`;
+
+  EDGES.forEach(e=>{
+    const s1=STATES[e.a],s2=STATES[e.b];
+    const fl=trafficFactors[e.a+'|'+e.b]||1;
+    const col=fl>1.3?'rgba(255,107,53,0.7)':fl>1.1?'rgba(250,204,21,0.6)':'rgba(0,255,179,0.5)';
+    const w=fl>1.3?3:fl>1.1?2:1.5;
+    svg+=`<line x1="${px(s1)}" y1="${py(s1)}" x2="${px(s2)}" y2="${py(s2)}" stroke="${col}" stroke-width="${w}"/>`;
+  });
+  keys.forEach(k=>{
+    const s=STATES[k];
+    const connFl=EDGES.filter(e=>e.a===k||e.b===k).reduce((acc,e)=>acc+(trafficFactors[e.a+'|'+e.b]||1),0)/Math.max(1,EDGES.filter(e=>e.a===k||e.b===k).length);
+    const col=connFl>1.3?'#ff6b35':connFl>1.1?'#facc15':'#00ffb3';
+    svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="8" fill="${col}" opacity="0.2"/>`;
+    svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="4" fill="${col}"/>`;
+    svg+=`<text x="${px(s)+8}" y="${py(s)+4}" fill="rgba(200,210,230,0.7)" font-size="9" font-family="DM Sans">${k.split(' ')[0]}</text>`;
+  });
+  svg+=`<text x="10" y="${H-8}" fill="rgba(100,116,139,0.7)" font-size="8" font-family="JetBrains Mono">🟢 Low  🟡 Medium  🔴 Heavy</text>`;
+  svg+=`</svg>`;
+  el.innerHTML=svg;
+}
+
+// ═══════════════════════════════════════════
+//  TRAFFIC CHART
+// ═══════════════════════════════════════════
+function drawTrafficChart(){
+  const cvs=document.getElementById('traffic-chart');
+  if(!cvs)return;
+  const ctx=cvs.getContext('2d');
+  cvs.width=cvs.offsetWidth||340;
+  const W=cvs.width,H=cvs.height;
+  ctx.clearRect(0,0,W,H);
+  const pattern=[0.5,0.4,0.3,0.3,0.4,0.6,0.9,1.0,0.95,0.8,0.7,0.65,0.7,0.75,0.8,0.85,1.0,0.95,0.85,0.7,0.6,0.55,0.5,0.45];
+  const h=new Date().getHours();
+  const pad=28;
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=pad+(H-2*pad)*i/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-10,y);ctx.stroke();}
+  // fill under line
+  ctx.beginPath();
+  pattern.forEach((v,i)=>{const x=pad+(W-pad-10)*i/23;const y=(H-pad)-(H-2*pad)*v;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.lineTo(W-10,H-pad);ctx.lineTo(pad,H-pad);
+  const grad=ctx.createLinearGradient(0,pad,0,H-pad);
+  grad.addColorStop(0,'rgba(0,229,255,0.2)');
+  grad.addColorStop(1,'rgba(0,229,255,0.01)');
+  ctx.fillStyle=grad;ctx.fill();
+  // line
+  ctx.beginPath();
+  pattern.forEach((v,i)=>{const x=pad+(W-pad-10)*i/23;const y=(H-pad)-(H-2*pad)*v;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+  ctx.strokeStyle='rgba(0,229,255,0.8)';ctx.lineWidth=2;ctx.stroke();
+  // rush hour shading
+  [[7,10],[16,19]].forEach(([s,e])=>{
+    const x1=pad+(W-pad-10)*s/23;const x2=pad+(W-pad-10)*e/23;
+    ctx.fillStyle='rgba(255,107,53,0.07)';
+    ctx.fillRect(x1,pad,x2-x1,H-2*pad);
+  });
+  // current hour
+  const cx2=pad+(W-pad-10)*h/23;
+  ctx.beginPath();ctx.moveTo(cx2,pad);ctx.lineTo(cx2,H-pad);
+  ctx.strokeStyle='rgba(255,107,53,0.9)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+  // dots at rush hour peaks
+  [7,16].forEach(i=>{const x=pad+(W-pad-10)*i/23;const y=(H-pad)-(H-2*pad)*pattern[i];ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='var(--warn)';ctx.fill();});
+  // axis
+  ctx.fillStyle='rgba(100,116,139,0.8)';ctx.font='8px DM Sans';
+  [0,6,12,18,23].forEach(i=>{const x=pad+(W-pad-10)*i/23;ctx.fillText(i+'h',x-6,H-5);});
+  ctx.fillText('High',2,pad+5);ctx.fillText('Low',2,H-pad-2);
+}
+
+// ═══════════════════════════════════════════
+//  GPS-STYLE MAP RENDER
+// ═══════════════════════════════════════════
+function renderMap(path,start,end){
+  const W=900,H=460;
+  const xs=Object.values(STATES).map(s=>s.x);
+  const ys=Object.values(STATES).map(s=>s.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  function px(s){return 55+(s.x-minX)/(maxX-minX)*(W-120);}
+  function py(s){return 45+(s.y-minY)/(maxY-minY)*(H-90);}
+
+  // Build animated path d
+  const pts=path.length>1?path.map(k=>STATES[k]):[];
+  let pathD='';
+  if(pts.length>1){pathD=`M ${px(pts[0])} ${py(pts[0])}`;pts.slice(1).forEach(s=>pathD+=` L ${px(s)} ${py(s)}`);}
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+  <defs>
+    <radialGradient id="mapbg" cx="40%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#0f1825"/><stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00e5ff" opacity="0.9"/>
+    </marker>
+    <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#7c6fff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="${W}" height="${H}" fill="url(#mapbg)"/>
+
+  <!-- Grid (map tiles feel) -->
+  ${(()=>{let g='';for(let x=0;x<W;x+=50)g+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="rgba(255,255,255,0.015)" stroke-width="1"/>`;for(let y=0;y<H;y+=50)g+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(255,255,255,0.015)" stroke-width="1"/>`;return g;})()}
+
+  <!-- Subtle dot grid overlay -->
+  ${(()=>{let d='';for(let x=25;x<W;x+=50)for(let y=25;y<H;y+=50)d+=`<circle cx="${x}" cy="${y}" r="1" fill="rgba(255,255,255,0.04)"/>`;return d;})()}
+
+  <!-- US boundary shape (decorative) -->
+  <path d="M 55 180 Q 200 140 350 155 Q 500 140 650 125 Q 720 130 780 150 L 790 200 Q 750 260 700 290 Q 620 310 530 305 Q 450 310 380 290 Q 280 295 200 280 Q 130 265 80 245 Z" fill="rgba(255,255,255,0.012)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+  // All road edges (base)
+  EDGES.forEach(e=>{
+    const s1=STATES[e.a],s2=STATES[e.b];
+    const fl=trafficFactors[e.a+'|'+e.b]||1;
+    const roadCol=fl>1.3?'rgba(255,107,53,0.25)':fl>1.1?'rgba(250,204,21,0.2)':'rgba(255,255,255,0.08)';
+    svg+=`<line x1="${px(s1)}" y1="${py(s1)}" x2="${px(s2)}" y2="${py(s2)}" stroke="${roadCol}" stroke-width="2.5" stroke-linecap="round"/>`;
+  });
+
+  // Route path — glow shadow
+  if(pathD){
+    svg+=`<path d="${pathD}" stroke="rgba(0,229,255,0.15)" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg+=`<path d="${pathD}" stroke="rgba(0,229,255,0.3)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg+=`<path d="${pathD}" stroke="url(#routeGrad)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowhead)" filter="url(#softglow)"/>`;
+    // Distance markers on route
+    if(path.length>2){
+      for(let i=1;i<path.length-1;i++){
+        const s=STATES[path[i]];
+        svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="5" fill="rgba(0,229,255,0.6)" filter="url(#softglow)"/>`;
+        svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="2" fill="#00e5ff"/>`;
+      }
+    }
+    // Animated car
+    svg+=`<g filter="url(#glow)">
+      <circle r="7" fill="#00ffb3" opacity="0.85">
+        <animateMotion dur="4s" repeatCount="indefinite" path="${pathD}"/>
+      </circle>
+      <circle r="3" fill="#fff" opacity="0.9">
+        <animateMotion dur="4s" repeatCount="indefinite" path="${pathD}"/>
+      </circle>
+    </g>`;
+  }
+
+  // All nodes
+  keys.forEach(k=>{
+    const s=STATES[k];
+    const inPath=path.includes(k);
+    const isStart=k===start,isEnd=k===end;
+    if(isStart||isEnd){
+      // GPS pin style
+      const col=isStart?'#00e5ff':'#7c6fff';
+      svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="22" fill="${col}" opacity="0.1"/>`;
+      svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="14" fill="${col}" opacity="0.15"/>`;
+      // Pin shape
+      svg+=`<path d="M ${px(s)} ${py(s)-18} Q ${px(s)+10} ${py(s)-18} ${px(s)+10} ${py(s)-8} Q ${px(s)+10} ${py(s)} ${px(s)} ${py(s)+6} Q ${px(s)-10} ${py(s)} ${px(s)-10} ${py(s)-8} Q ${px(s)-10} ${py(s)-18} ${px(s)} ${py(s)-18}" fill="${col}" filter="url(#glow)"/>`;
+      svg+=`<circle cx="${px(s)}" cy="${py(s)-10}" r="3.5" fill="rgba(255,255,255,0.9)"/>`;
+      const lbl=isStart?'START':'END';
+      svg+=`<rect x="${px(s)-18}" y="${py(s)+10}" width="36" height="14" rx="4" fill="${col}" opacity="0.9"/>`;
+      svg+=`<text x="${px(s)}" y="${py(s)+20}" text-anchor="middle" fill="#000" font-size="8" font-family="DM Sans" font-weight="bold">${lbl}</text>`;
+    } else {
+      const col=inPath?'#00ffb3':'rgba(124,111,255,0.55)';
+      const r=inPath?7:4.5;
+      if(inPath)svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="12" fill="${col}" opacity="0.12"/>`;
+      svg+=`<circle cx="${px(s)}" cy="${py(s)}" r="${r}" fill="${col}" filter="${inPath?'url(#softglow)':'none'}"/>`;
+    }
+    // City label with background
+    const lx=px(s)+13,ly=py(s)+4;
+    const name=k.split(' ')[0];
+    const textCol=isStart?'#00e5ff':isEnd?'#7c6fff':inPath?'#fff':'rgba(200,210,230,0.55)';
+    svg+=`<text x="${lx}" y="${ly}" fill="${textCol}" font-size="${inPath||isStart||isEnd?11:9}" font-family="DM Sans" font-weight="${inPath?'bold':'normal'}">${name}</text>`;
+  });
+
+  // Legend
+  svg+=`<rect x="${W-140}" y="10" width="130" height="55" rx="8" fill="rgba(12,17,32,0.85)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>`;
+  svg+=`<circle cx="${W-125}" cy="28" r="4" fill="#00e5ff"/><text x="${W-117}" y="32" fill="rgba(200,210,230,0.7)" font-size="9" font-family="DM Sans">Start</text>`;
+  svg+=`<circle cx="${W-125}" cy="44" r="4" fill="#7c6fff"/><text x="${W-117}" y="48" fill="rgba(200,210,230,0.7)" font-size="9" font-family="DM Sans">End</text>`;
+  svg+=`<circle cx="${W-125}" cy="58" r="4" fill="#00ffb3"/><text x="${W-117}" y="62" fill="rgba(200,210,230,0.7)" font-size="9" font-family="DM Sans">Route node</text>`;
+
+  svg+=`</svg>`;
+
+  const mc=document.getElementById('map-canvas');
+  mc.innerHTML=`
+    <div style="position:relative;width:100%;height:100%;">
+      ${svg}
+      <div style="position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(12,17,32,0.92);border:1px solid rgba(0,229,255,0.2);border-radius:8px;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--accent);backdrop-filter:blur(8px);">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 6px var(--accent3);animation:blink 1.5s infinite;"></div>
+        GPS LIVE
+      </div>
+      <div style="position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:5px;">
+        <div style="width:32px;height:32px;background:rgba(12,17,32,0.92);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;cursor:pointer;">+</div>
+        <div style="width:32px;height:32px;background:rgba(12,17,32,0.92);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;cursor:pointer;">−</div>
+        <div style="width:32px;height:32px;background:rgba(12,17,32,0.92);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:var(--warn);font-family:'JetBrains Mono',monospace;">N</div>
+      </div>
+      <div style="position:absolute;bottom:10px;left:10px;background:rgba(12,17,32,0.85);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);">Scale: ~200mi/div</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+//  TURN-BY-TURN DIRECTIONS
+// ═══════════════════════════════════════════
+function renderDirections(path){
+  const el=document.getElementById('directions-panel');
+  if(!el||path.length<2){return;}
+  const icons=['🟢','➡️','↗️','↩️','⬆️','🔄','↙️','↪️'];
+  let html='';
+  for(let i=0;i<path.length;i++){
+    const node=path[i];
+    const isFirst=i===0,isLast=i===path.length-1;
+    const icon=isFirst?'📍':isLast?'🏁':icons[i%icons.length];
+    const dist=i<path.length-1?
+      `<span class="dir-dist">${Math.round(geoD(path[i],path[i+1])*69)} mi</span>`:'';
+    const action=isFirst?`Start at ${node}`:isLast?`Arrive at ${node}`:`Continue to ${node}`;
+    html+=`<div class="dir-step"><span class="dir-icon">${icon}</span><span class="dir-text">${action}</span>${dist}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
+//  GRAPH CANVAS
+// ═══════════════════════════════════════════
+function drawGraphCanvas(path=[]){
+  const cvs=document.getElementById('graph-canvas');
+  if(!cvs)return;
+  const ctx=cvs.getContext('2d');
+  cvs.width=cvs.offsetWidth||600;
+  const W=cvs.width,H=cvs.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Gradient background
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#0f1825');bg.addColorStop(1,'#05070f');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  const xs=Object.values(STATES).map(s=>s.x);
+  const ys=Object.values(STATES).map(s=>s.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  function px(s){return 45+(s.x-minX)/(maxX-minX)*(W-90);}
+  function py(s){return 35+(s.y-minY)/(maxY-minY)*(H-70);}
+
+  // edges
+  EDGES.forEach(e=>{
+    const s1=STATES[e.a],s2=STATES[e.b];
+    const inPath=path.length>1&&path.includes(e.a)&&path.includes(e.b);
+    ctx.beginPath();ctx.moveTo(px(s1),py(s1));ctx.lineTo(px(s2),py(s2));
+    if(inPath){
+      ctx.strokeStyle='rgba(0,229,255,0.75)';ctx.lineWidth=2.5;
+      ctx.shadowColor='rgba(0,229,255,0.5)';ctx.shadowBlur=6;
+    } else {
+      ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;
+      ctx.shadowBlur=0;
+    }
+    ctx.stroke();ctx.shadowBlur=0;
+    // weight label
+    const mx=(px(s1)+px(s2))/2,my=(py(s1)+py(s2))/2;
+    ctx.fillStyle=inPath?'rgba(0,229,255,0.6)':'rgba(100,116,139,0.5)';
+    ctx.font='8px JetBrains Mono';
+    ctx.fillText(e.w,mx-8,my);
+  });
+
+  // nodes
+  keys.forEach(k=>{
+    const s=STATES[k];
+    const inPath=path.includes(k);
+    const isEnd2=path.length>0&&(k===path[0]||k===path[path.length-1]);
+    const r=isEnd2?10:inPath?7:5;
+    const col=isEnd2?'#00e5ff':inPath?'rgba(0,255,179,0.9)':'rgba(124,111,255,0.6)';
+    if(isEnd2){ctx.shadowColor=col;ctx.shadowBlur=15;}
+    ctx.beginPath();ctx.arc(px(s),py(s),r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    ctx.shadowBlur=0;
+    // Ring for endpoints
+    if(isEnd2){ctx.beginPath();ctx.arc(px(s),py(s),r+5,0,Math.PI*2);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1;}
+    ctx.fillStyle=inPath?'#fff':'rgba(200,210,230,0.55)';
+    ctx.font=`${inPath?'bold ':''} 9px DM Sans`;
+    ctx.fillText(k.split(' ')[0],px(s)-10,py(s)-12);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  FIND ROUTE
+// ═══════════════════════════════════════════
+function findRoute(){
+  const start=document.getElementById('sel-start').value;
+  const end=document.getElementById('sel-end').value;
+  if(start===end){alert('Please select different start and destination.');return;}
+
+  const btn=document.getElementById('run-btn');
+  btn.innerHTML='<div class="spinner"></div> Computing...';
+  btn.disabled=true;
+
+  setTimeout(()=>{
+    initTrafficFactors();
+    const mode=document.getElementById('sel-mode').value;
+    const adj=mode==='time'?getTrafficAdj():ADJ;
+
+    let traceLines=[],pathA=[],pathD=[],costA=0,costD=0;
+    let aResult=null,dResult=null;
+
+    if(selectedAlgo==='astar'||selectedAlgo==='both'){
+      aResult=astar(start,end,adj);
+      pathA=getPath(aResult.prev,start,end);
+      costA=aResult.dist[end];
+      traceLines=[...aResult.trace];
+    }
+    if(selectedAlgo==='dijkstra'||selectedAlgo==='both'){
+      dResult=dijkstra(start,end,adj);
+      pathD=getPath(dResult.prev,start,end);
+      costD=dResult.dist[end];
+      traceLines=[...traceLines,...dResult.trace];
+    }
+
+    const mainPath=selectedAlgo==='dijkstra'?pathD:pathA;
+    const mainCost=selectedAlgo==='dijkstra'?costD:costA;
+
+    const miles=Math.max(1,Math.round(mainCost*1.2));
+    const time=Math.max(5,Math.round(miles/55*60+(Math.random()*20-10)));
+    const cost=Math.round(miles*0.18+Math.random()*10);
+    const carbon=+(miles*0.404/1000*2.21).toFixed(2);
+
+    // Update KPIs
+    document.getElementById('kpi-dist').innerHTML=`${miles}<small class="kpi-unit">mi</small>`;
+    document.getElementById('kpi-time').innerHTML=`${time}<small class="kpi-unit">min</small>`;
+    document.getElementById('kpi-cost').innerHTML=`$${cost}`;
+    document.getElementById('kpi-carbon').innerHTML=`${carbon}<small class="kpi-unit">kg</small>`;
+
+    // Routes
+    const routes=[
+      {name:'Route A (Optimal)',  path:mainPath,time,cost,carbon,dist:miles,badge:'Recommended',badgeClass:'blue'},
+      {name:'Route B (Scenic)',   path:mainPath,time:Math.round(time*1.2),cost:Math.round(cost*0.85),carbon:+(carbon*0.8).toFixed(2),dist:Math.round(miles*1.15),badge:'Eco',badgeClass:'green'},
+      {name:'Route C (Freeway)',  path:mainPath,time:Math.round(time*0.9),cost:Math.round(cost*1.3),carbon:+(carbon*1.1).toFixed(2),dist:Math.round(miles*0.95),badge:'Fast',badgeClass:'purple'},
+    ];
+    chatRoutes=routes;
+    renderRouteCards(routes);
+
+    // Map
+    renderMap(mainPath,start,end);
+    drawGraphCanvas(mainPath);
+
+    // Directions
+    renderDirections(mainPath);
+
+    // Trace
+    traceSteps=traceLines;currentStep=0;
+    const tl=document.getElementById('trace-log');
+    tl.innerHTML=traceLines.map(l=>{
+      const cls=l.startsWith('  ')?'step':l.includes('Done')?'result':'highlight';
+      return `<div class="trace-line ${cls}">${l}</div>`;
+    }).join('');
+    updateStepDisplay();
+
+    // Stats for algo page
+    document.getElementById('stat-pathlen').textContent=mainPath.length+' nodes';
+    document.getElementById('stat-pathcost').textContent=mainCost||'—';
+
+    // Algo comparison
+    if(selectedAlgo==='both'&&aResult&&dResult){
+      document.getElementById('algo-comparison-detail').innerHTML=`
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:8px;padding:0.75rem;">
+            <div style="color:var(--accent);font-weight:700;font-size:0.78rem;margin-bottom:0.5rem;">A* Search</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--muted);line-height:1.8;">
+              Cost: <span style="color:var(--accent)">${costA||'∞'}</span><br>
+              Path: ${pathA.map(k=>`<span style="color:var(--accent3)">${k.split(' ')[0]}</span>`).join('→')||'No path'}
+            </div>
+          </div>
+          <div style="background:rgba(124,111,255,0.05);border:1px solid rgba(124,111,255,0.15);border-radius:8px;padding:0.75rem;">
+            <div style="color:var(--accent2);font-weight:700;font-size:0.78rem;margin-bottom:0.5rem;">Dijkstra</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--muted);line-height:1.8;">
+              Cost: <span style="color:var(--accent2)">${costD||'∞'}</span><br>
+              Path: ${pathD.map(k=>`<span style="color:var(--accent3)">${k.split(' ')[0]}</span>`).join('→')||'No path'}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    lastResult={start,end,path:mainPath,miles,time,cost,carbon,routes};
+    renderPathStats(mainPath,miles,time,cost,carbon);
+    renderAnalysisPage();
+    renderTrafficPage();
+
+    btn.innerHTML='▶ Find Best Route';
+    btn.disabled=false;
+  },600);
+}
+
+// ═══════════════════════════════════════════
+//  ROUTE CARDS
+// ═══════════════════════════════════════════
+function renderRouteCards(routes){
+  const colors=['var(--accent)','var(--accent3)','var(--accent2)'];
+  document.getElementById('route-cards').innerHTML=routes.map((r,i)=>`
+    <div class="route-card fade-in" onclick="selectRoute(${i})" id="rc-${i}">
+      <div class="route-name" style="color:${colors[i]}">${r.name}</div>
+      <span class="route-badge tag ${r.badgeClass}">${r.badge}</span>
+      <div class="route-stat"><span>⏱ Time</span><span>${r.time} min</span></div>
+      <div class="route-stat"><span>💰 Cost</span><span>$${r.cost}</span></div>
+      <div class="route-stat"><span>🌿 Carbon</span><span>${r.carbon} kg</span></div>
+      <div class="route-stat"><span>📏 Dist</span><span>${r.dist} mi</span></div>
+    </div>`).join('');
+  selectRoute(0);
+}
+
+function selectRoute(i){
+  document.querySelectorAll('.route-card').forEach((c,j)=>c.classList.toggle('selected',i===j));
+  if(chatRoutes){
+    const r=chatRoutes[i];
+    document.getElementById('kpi-time').innerHTML=`${r.time}<small class="kpi-unit">min</small>`;
+    document.getElementById('kpi-cost').innerHTML=`$${r.cost}`;
+    document.getElementById('kpi-carbon').innerHTML=`${r.carbon}<small class="kpi-unit">kg</small>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PATH STATS
+// ═══════════════════════════════════════════
+function renderPathStats(path,miles,time,cost,carbon){
+  const el=document.getElementById('path-stats');
+  if(!el)return;
+  const hops=path.length-1;
+  el.innerHTML=`
+    <div class="stat-grid">
+      ${sbox('Nodes Visited',path.length,'nodes')}
+      ${sbox('Hops',hops,'edges')}
+      ${sbox('Distance',miles,'mi')}
+      ${sbox('Avg Edge',Math.round(miles/Math.max(hops,1)),'mi/hop')}
+      ${sbox('Avg Speed',Math.round(miles/(time/60)),'mph')}
+      ${sbox('CO₂',carbon,'kg CO₂')}
+    </div>
+    <div class="path-viz">
+      ${path.map((k,i)=>`
+        ${i>0?'<span class="path-arrow">→</span>':''}
+        <span class="path-node">${k.split(' ')[0]}</span>`).join('')}
+    </div>`;
+}
+function sbox(label,val,unit){
+  return `<div class="stat-box"><div class="stat-box-label">${label}</div><div class="stat-box-val">${val} <span class="stat-box-unit">${unit}</span></div></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  ANALYSIS PAGE
+// ═══════════════════════════════════════════
+function renderAnalysisPage(){
+  if(!lastResult)return;
+  const {routes,miles,time,cost,carbon}=lastResult;
+  if(!routes)return;
+
+  // Comparison chart (SVG bar chart)
+  const el=document.getElementById('comparison-chart');
+  if(el){
+    const colors=['#00e5ff','#00ffb3','#7c6fff'];
+    const labels=routes.map(r=>r.name.replace(' (','<br>('));
+    const maxTime=Math.max(...routes.map(r=>r.time));
+    const maxCost=Math.max(...routes.map(r=>r.cost));
+    el.innerHTML=`
+      <div style="margin-bottom:0.75rem;font-size:0.75rem;color:var(--muted);">Time comparison (minutes)</div>
+      ${routes.map((r,i)=>`
+        <div style="margin-bottom:0.5rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:0.2rem;">
+            <span style="color:${colors[i]}">${r.name}</span>
+            <span style="font-family:'JetBrains Mono',monospace;">${r.time} min</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:8px;overflow:hidden;">
+            <div style="width:${(r.time/maxTime*100).toFixed(1)}%;height:100%;background:${colors[i]};border-radius:4px;transition:width 0.8s ease;"></div>
+          </div>
+        </div>`).join('')}
+      <div style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.75rem;color:var(--muted);">Cost comparison ($)</div>
+      ${routes.map((r,i)=>`
+        <div style="margin-bottom:0.5rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:0.2rem;">
+            <span style="color:${colors[i]}">${r.name}</span>
+            <span style="font-family:'JetBrains Mono',monospace;">$${r.cost}</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:8px;overflow:hidden;">
+            <div style="width:${(r.cost/maxCost*100).toFixed(1)}%;height:100%;background:${colors[i]};border-radius:4px;transition:width 0.8s ease;"></div>
+          </div>
+        </div>`).join('')}`;
+  }
+
+  // Eco panel
+  const ep=document.getElementById('eco-panel');
+  if(ep){
+    const best=routes.reduce((a,b)=>a.carbon<b.carbon?a:b);
+    const worst=routes.reduce((a,b)=>a.carbon>b.carbon?a:b);
+    ep.innerHTML=`
+      <div style="display:grid;gap:0.5rem;">
+        <div style="background:rgba(0,255,179,0.05);border:1px solid rgba(0,255,179,0.15);border-radius:8px;padding:0.85rem;">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.25rem;">🌿 Most Eco-Friendly</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent3);">${best.name}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">${best.carbon} kg CO₂ — saves ${(worst.carbon-best.carbon).toFixed(2)} kg vs worst</div>
+        </div>
+        <div style="background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.15);border-radius:8px;padding:0.85rem;">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.25rem;">⚡ Highest Emissions</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--warn);">${worst.name}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">${worst.carbon} kg CO₂</div>
+        </div>
+        <div style="padding:0.75rem;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid var(--border);font-size:0.75rem;color:var(--muted);line-height:1.7;">
+          🚗 Avg fuel use: ~${(miles*0.034).toFixed(1)} gal<br>
+          💡 Equivalent trees to offset: ${Math.round(carbon/21.77)} trees/year<br>
+          🔋 EV would emit: ${+(carbon*0.25).toFixed(2)} kg CO₂
+        </div>
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  NODE EXPLORER
+// ═══════════════════════════════════════════
+function renderNodeExplorer(){
+  const el=document.getElementById('node-explorer');
+  if(!el)return;
+  el.innerHTML=`
+    <label>Explore Node</label>
+    <select onchange="showNodeInfo(this.value)" style="margin-bottom:0.75rem;">
+      <option value="">Select a node...</option>
+      ${keys.map(k=>`<option value="${k}">${k}</option>`).join('')}
+    </select>
+    <div id="node-info" style="font-size:0.8rem;color:var(--muted);">Select a node to see its connections.</div>`;
+}
+
+function showNodeInfo(k){
+  if(!k)return;
+  const s=STATES[k];
+  const neighbors=ADJ[k];
+  document.getElementById('node-info').innerHTML=`
+    <div style="margin-bottom:0.75rem;padding:0.6rem;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.8;">
+      <span style="color:var(--accent)">state:</span> ${k}<br>
+      <span style="color:var(--accent)">coords:</span> (${s.lat}, ${s.lon})<br>
+      <span style="color:var(--accent)">degree:</span> ${neighbors.length} connections
+    </div>
+    <div style="font-size:0.78rem;">
+      ${neighbors.map(n=>`
+        <div style="padding:0.3rem 0.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span>${n.to}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;">
+            <span style="color:var(--accent)">${n.w}</span>
+            <span style="color:var(--muted);font-size:0.65rem;"> cost</span>
+          </span>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+//  STEP EXPLORER
+// ═══════════════════════════════════════════
+function updateStepDisplay(){
+  const el=document.getElementById('step-display');
+  const info=document.getElementById('step-info');
+  if(!traceSteps.length){
+    if(el)el.textContent='Waiting for route computation...';
+    if(info)info.textContent='Run planner to explore steps';
+    return;
+  }
+  if(info)info.textContent=`Step ${currentStep+1} / ${traceSteps.length}`;
+  if(el){
+    const line=traceSteps[currentStep];
+    const col=line.startsWith('  ')?'var(--text)':line.includes('Done')?'var(--accent)':'var(--accent3)';
+    el.innerHTML=`<span style="color:${col}">${line}</span>`;
+  }
+}
+function stepNext(){if(currentStep<traceSteps.length-1){currentStep++;updateStepDisplay();}}
+function stepPrev(){if(currentStep>0){currentStep--;updateStepDisplay();}}
+
+// ═══════════════════════════════════════════
+//  CHATBOT
+// ═══════════════════════════════════════════
+function toggleChat(){
+  const p=document.getElementById('chat-panel');
+  const fab=document.getElementById('chat-fab');
+  const open=p.style.display==='flex';
+  p.style.display=open?'none':'flex';
+  fab.style.display=open?'flex':'none';
+}
+
+function parseQuery(q){
+  q=q.toLowerCase();
+  if(/fast|quick|speed|rapid/.test(q))return 'fastest';
+  if(/cheap|budget|low cost|afford/.test(q))return 'cheapest';
+  if(/eco|green|carbon|environment/.test(q))return 'eco';
+  if(/compare|vs|versus|difference/.test(q))return 'compare';
+  if(/help|what|how/.test(q))return 'help';
+  return 'balanced';
+}
+
+function chatbotResponse(query){
+  if(!chatRoutes)return "⚠️ Please run the route planner first, then I can help compare options!";
+  const pref=parseQuery(query);
+  const routes=chatRoutes;
+  if(pref==='help')return `I can help you:\n• Find fastest route\n• Find cheapest route\n• Find eco-friendly option\n• Compare all routes\n\nTry: "which is fastest?" or "recommend eco route"`;
+  if(pref==='compare')return `📊 Route Comparison:\n\n`+routes.map(r=>`${r.name}\n  ⏱ ${r.time}min  💰 $${r.cost}  🌿 ${r.carbon}kg`).join('\n\n');
+  let best,reason;
+  if(pref==='fastest'){best=routes.reduce((a,b)=>a.time<b.time?a:b);reason='fastest travel time';}
+  else if(pref==='cheapest'){best=routes.reduce((a,b)=>a.cost<b.cost?a:b);reason='lowest cost';}
+  else if(pref==='eco'){best=routes.reduce((a,b)=>a.carbon<b.carbon?a:b);reason='lowest carbon footprint';}
+  else{best=routes[0];reason='best overall balance';}
+  const second=routes.filter(r=>r!==best)[0];
+  return `🚗 Recommended: ${best.name}\n\n⏱ ${best.time} min  💰 $${best.cost}  🌿 ${best.carbon} kg CO₂\n\n✅ Selected for ${reason}.\n\n💡 vs ${second.name}: saves ${Math.abs(best.time-second.time)} min and $${Math.abs(best.cost-second.cost)}.`;
+}
+
+function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msgs=document.getElementById('chat-messages');
+  const q=inp.value.trim();
+  if(!q)return;
+  msgs.innerHTML+=`<div class="chat-bubble user">${q}</div>`;
+  inp.value='';
+  setTimeout(()=>{
+    const resp=chatbotResponse(q);
+    msgs.innerHTML+=`<div class="chat-bubble bot" style="white-space:pre-line">${resp}</div>`;
+    msgs.scrollTop=msgs.scrollHeight;
+  },400);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Boot
+init();
+</script>
+</body>
+</html>
